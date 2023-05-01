@@ -34,7 +34,8 @@
 
   <properties>
     <java.version>17</java.version>
-    <amazons3.version>2.18.31</amazons3.version>
+
+    <amazons3.version>2.20.56</amazons3.version>
   </properties>
 
   <repositories>
