@@ -7,7 +7,6 @@
   </appender>
 
   <logger name="nl.aerius" level="info" />
-  <logger name="nl.overheid.aerius" level="info" />
 
   <root level="warn">
     <appender-ref ref="STDOUT" />
