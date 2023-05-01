@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.overheid.aerius.fileserver.s3;
+package nl.aerius.fileserver.local;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -22,19 +22,31 @@ import org.springframework.validation.annotation.Validated;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Amazon S3 properties. Specific to configure the bucket name.
+ * Local storage configuration.
  */
-@ConfigurationProperties("aerius.file.storage.s3")
+@ConfigurationProperties("aerius.file.storage")
 @Validated
-class AmazonS3StorageProperties {
+class LocalStorageProperties {
+  /**
+   * Folder location for storing files
+   */
+  private @NotNull String location = "aeriusupload";
 
-  private @NotNull String bucketName;
+  private boolean preventCleanup;
 
-  public String getBucketName() {
-    return bucketName;
+  public String getLocation() {
+    return location;
   }
 
-  public void setBucketName(final String bucketName) {
-    this.bucketName = bucketName;
+  public void setLocation(final String location) {
+    this.location = location;
+  }
+
+  public boolean isPreventCleanup() {
+    return preventCleanup;
+  }
+
+  public void setPreventCleanup(final boolean preventCleanup) {
+    this.preventCleanup = preventCleanup;
   }
 }

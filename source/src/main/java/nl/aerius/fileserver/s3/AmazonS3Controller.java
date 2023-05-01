@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.overheid.aerius.fileserver.s3;
+package nl.aerius.fileserver.s3;
 
 import java.io.FileNotFoundException;
 
@@ -26,8 +26,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import nl.overheid.aerius.fileserver.storage.FileController;
-import nl.overheid.aerius.fileserver.storage.StorageService;
+import nl.aerius.fileserver.storage.FileController;
+import nl.aerius.fileserver.storage.StorageService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

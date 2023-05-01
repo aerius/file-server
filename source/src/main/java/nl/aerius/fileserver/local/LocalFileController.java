@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.overheid.aerius.fileserver.local;
+package nl.aerius.fileserver.local;
 
 import java.io.IOException;
 
@@ -32,9 +32,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import nl.overheid.aerius.fileserver.storage.FileController;
-import nl.overheid.aerius.fileserver.storage.StorageService;
-import nl.overheid.aerius.fileserver.util.FilenameUtil;
+import nl.aerius.fileserver.storage.FileController;
+import nl.aerius.fileserver.storage.StorageService;
+import nl.aerius.fileserver.util.FilenameUtil;
 
 /**
  * Controller to handle the HTTP requests to the file server.

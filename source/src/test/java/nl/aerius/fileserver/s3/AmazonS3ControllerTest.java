@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.overheid.aerius.fileserver.s3;
+package nl.aerius.fileserver.s3;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,7 +31,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import nl.overheid.aerius.fileserver.storage.StorageService;
+import nl.aerius.fileserver.storage.StorageService;
 
 /**
  * Test class for {@link AmazonS3Controller}.

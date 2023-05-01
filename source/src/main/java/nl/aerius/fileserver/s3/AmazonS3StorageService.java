@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.overheid.aerius.fileserver.s3;
+package nl.aerius.fileserver.s3;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import nl.overheid.aerius.fileserver.storage.StorageService;
+import nl.aerius.fileserver.storage.StorageService;
 
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
