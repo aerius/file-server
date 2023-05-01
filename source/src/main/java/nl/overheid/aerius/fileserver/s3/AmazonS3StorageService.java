@@ -110,7 +110,8 @@ public class AmazonS3StorageService implements StorageService {
    * @param key key to check
    */
   private void checkFileExists(final String key) {
-    s3Client.getObjectAttributes(GetObjectAttributesRequest.builder().bucket(bucketName).key(key).objectAttributes(ObjectAttributes.CHECKSUM).build());
+    s3Client.getObjectAttributes(
+        GetObjectAttributesRequest.builder().bucket(bucketName).key(key).objectAttributes(ObjectAttributes.CHECKSUM).build());
   }
 
   @Override

@@ -18,8 +18,6 @@ package nl.overheid.aerius.fileserver.storage;
 
 import java.io.IOException;
 
-import javax.servlet.ServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -30,6 +28,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import nl.overheid.aerius.fileserver.util.FilenameUtil;
+
+import jakarta.servlet.ServletRequest;
 
 /**
  * Generic base Controller implementing all HTTP methods except for the GET request.

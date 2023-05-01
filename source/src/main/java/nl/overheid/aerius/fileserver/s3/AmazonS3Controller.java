@@ -18,9 +18,6 @@ package nl.overheid.aerius.fileserver.s3;
 
 import java.io.FileNotFoundException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
@@ -31,6 +28,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import nl.overheid.aerius.fileserver.storage.FileController;
 import nl.overheid.aerius.fileserver.storage.StorageService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Implements the controller for using Amazon S3.
