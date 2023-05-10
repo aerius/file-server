@@ -4,7 +4,7 @@ FROM maven:3-eclipse-temurin-17 as builder
 WORKDIR /app
 
 # Do the actual build
-COPY ./source /app
+COPY . /app
 RUN mvn --no-transfer-progress -DskipTests=true clean package
 
 # Move the resultant jar to a known name so it can be picked up by the final image.
