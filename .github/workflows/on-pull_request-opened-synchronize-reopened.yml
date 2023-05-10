@@ -25,4 +25,4 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_IMAGE_NAME: ${{ github.event.repository.name }}
-          DOCKERFILE_LOCATION: docker/service/Dockerfile
+          DOCKERFILE_DIRECTORY: repo/source

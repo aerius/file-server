@@ -29,4 +29,4 @@ jobs:
           DOCKER_REGISTRY_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           DOCKER_REGISTRY_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
           DOCKER_IMAGE_NAME: ${{ github.event.repository.name }}
-          DOCKERFILE_LOCATION: docker/service/Dockerfile
+          DOCKERFILE_DIRECTORY: repo/source
