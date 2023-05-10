@@ -36,6 +36,12 @@
     <java.version>17</java.version>
 
     <amazons3.version>2.20.56</amazons3.version>
+
+    <sonar.projectKey>aerius_file-server</sonar.projectKey>
+    <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+    <sonar.organization>aerius</sonar.organization>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <sonar.java.pmd.reportPaths>${project.build.directory}/dependency-check-report-pmd.xml</sonar.java.pmd.reportPaths>
   </properties>
 
   <repositories>
