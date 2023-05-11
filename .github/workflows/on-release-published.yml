@@ -31,5 +31,5 @@ jobs:
           DOCKER_REGISTRY_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           DOCKER_REGISTRY_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
           DOCKER_IMAGE_NAME: ${{ github.event.repository.name }}
-          DOCKERFILE_DIRECTORY: repo/source
+          DOCKER_WORK_DIRECTORY: repo/source
           JDK_VERSION: 17
