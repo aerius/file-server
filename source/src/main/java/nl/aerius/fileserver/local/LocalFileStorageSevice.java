@@ -60,22 +60,25 @@ class LocalFileStorageSevice implements StorageService {
     if (!Files.exists(uuidPath)) {
       Files.createDirectory(uuidPath);
     }
-    final File file = filePath(uuidPath, filename);
-    Files.copy(in, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    final Path file = filePath(uuidPath, filename);
+    Files.copy(in, file, StandardCopyOption.REPLACE_EXISTING);
   }
 
   @Override
   public String getFile(final String uuid, final String filename) throws FileNotFoundException {
-    final Path uuidPath = uuidDirectory(uuid);
+    return existingFilePath(uuid, filename).toAbsolutePath().toString();
+  }
 
-    if (Files.exists(uuidPath)) {
-      final File file = filePath(uuidPath, filename);
+  @Override
+  public void copyFile(final String sourceUuid, final String destinationUuid, final String filename, final String expires) throws IOException {
+    final Path sourceFilePath = existingFilePath(sourceUuid, filename);
+    final Path uuidPath = uuidDirectory(destinationUuid);
 
-      if (file.exists()) {
-        return file.getAbsolutePath();
-      }
+    if (!Files.exists(uuidPath)) {
+      Files.createDirectory(uuidPath);
     }
-    throw new FileNotFoundException("file '" + uuid + "/" + filename + "' not found");
+    final Path destinationFilePath = filePath(uuidPath, filename);
+    Files.copy(sourceFilePath, destinationFilePath, StandardCopyOption.REPLACE_EXISTING);
   }
 
   @Override
@@ -85,7 +88,7 @@ class LocalFileStorageSevice implements StorageService {
     }
     final Path uuidPath = uuidDirectory(uuid);
 
-    Files.delete(filePath(uuidPath, filename).toPath());
+    Files.delete(filePath(uuidPath, filename));
     final String[] files = uuidPath.toFile().list();
 
     if (files == null || files.length == 0) {
@@ -112,11 +115,24 @@ class LocalFileStorageSevice implements StorageService {
     }
   }
 
+  private Path existingFilePath(final String uuid, final String filename) throws FileNotFoundException {
+    final Path uuidPath = uuidDirectory(uuid);
+
+    if (Files.exists(uuidPath)) {
+      final Path file = filePath(uuidPath, filename);
+
+      if (Files.exists(file)) {
+        return file;
+      }
+    }
+    throw new FileNotFoundException("file '" + uuid + "/" + filename + "' not found");
+  }
+
   private Path uuidDirectory(final String uuid) {
     return Paths.get(localStorageDirectory.getAbsolutePath(), uuid);
   }
 
-  private static File filePath(final Path uuidPath, final String filename) {
-    return new File(uuidPath.toFile(), filename);
+  private static Path filePath(final Path uuidPath, final String filename) {
+    return uuidPath.resolve(filename);
   }
 }

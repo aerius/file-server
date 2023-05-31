@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -32,6 +31,7 @@ import nl.aerius.fileserver.storage.StorageService;
 
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAttributesRequest;
@@ -40,7 +40,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ObjectAttributes;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest.Builder;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.model.Tag;
@@ -75,7 +74,7 @@ public class AmazonS3StorageService implements StorageService {
   @Override
   public void putFile(final String uuid, final String filename, final long size, final String expires, final InputStream in) throws IOException {
     final String expiresValue = expires == null ? TAG_EXPIRES_NEVER : expires;
-    final Builder builder = PutObjectRequest.builder()
+    final PutObjectRequest.Builder builder = PutObjectRequest.builder()
         .bucket(bucketName)
         .key(key(uuid, filename))
         .tagging(Tagging.builder().tagSet(Tag.builder().key(TAG_EXPIRES_KEY).value(expiresValue).build()).build());
@@ -115,6 +114,23 @@ public class AmazonS3StorageService implements StorageService {
   }
 
   @Override
+  public void copyFile(final String sourceUuid, final String destinationUuid, final String filename, final String expires) throws IOException {
+    try {
+      final String expiresValue = expires == null ? TAG_EXPIRES_NEVER : expires;
+      final CopyObjectRequest.Builder builder = CopyObjectRequest.builder()
+          .sourceBucket(bucketName)
+          .sourceKey(key(sourceUuid, filename))
+          .destinationBucket(bucketName)
+          .destinationKey(key(destinationUuid, filename))
+          .tagging(Tagging.builder().tagSet(Tag.builder().key(TAG_EXPIRES_KEY).value(expiresValue).build()).build());
+
+      s3Client.copyObject(builder.build());
+    } catch (final S3Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
   public void deleteFile(final String uuid, final String filename) throws IOException {
     deleteObjects(List.of(toDeleteObject(key(uuid, filename))));
   }
@@ -128,7 +144,7 @@ public class AmazonS3StorageService implements StorageService {
         .build();
 
     deleteObjects(s3Client.listObjects(listObjects).contents().stream().map(S3Object::key).map(AmazonS3StorageService::toDeleteObject)
-        .collect(Collectors.toList()));
+        .toList());
   }
 
   private void deleteObjects(final List<ObjectIdentifier> toDelete) throws IOException {
