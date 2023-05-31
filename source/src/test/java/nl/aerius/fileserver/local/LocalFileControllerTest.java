@@ -114,7 +114,7 @@ class LocalFileControllerTest {
     final File tmpFile = new File(tempDir, tempFilename);
     final String content = "test";
     Files.writeString(tmpFile.toPath(), content);
-    doReturn(tmpFile.getAbsolutePath()).when(storageService).getFile(eq(UUID_CODE), eq(tempFilename));
+    doReturn(tmpFile.getAbsolutePath()).when(storageService).getFile(UUID_CODE, tempFilename);
     final MockHttpServletResponse response = mvc.perform(get(HTTP_LOCALHOST + UUID_CODE + "/" + tempFilename)).andExpect(status().isOk()).andReturn()
         .getResponse();
 
