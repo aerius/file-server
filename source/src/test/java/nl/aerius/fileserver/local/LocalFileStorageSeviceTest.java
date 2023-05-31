@@ -128,7 +128,7 @@ class LocalFileStorageSeviceTest {
   @Test
   void testDeleteFiles() throws IOException {
     writeTempFile();
-    service.deleteFile(UUID_CODE, FILENAME);
+    service.deleteFiles(UUID_CODE);
     assertFalse(expectedFile.exists(), "File should not exist after delete");
   }
 
