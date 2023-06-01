@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayInputStream;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.S3Utilities.Builder;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAttributesRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
@@ -84,6 +87,7 @@ class AmazonS3StorageServiceTest {
 
   private @Captor ArgumentCaptor<PutObjectRequest> putObjectRequestCaptor;
   private @Captor ArgumentCaptor<RequestBody> requestBodyCaptor;
+  private @Captor ArgumentCaptor<CopyObjectRequest> copyObjectRequestCaptor;
   private @Captor ArgumentCaptor<DeleteObjectsRequest> deleteObjectsRequestCaptor;
   private @Captor ArgumentCaptor<ListObjectsRequest> listObjectsRequestCaptor;
 
@@ -106,6 +110,24 @@ class AmazonS3StorageServiceTest {
     assertEquals(CONTENT.length(), requestBodyCaptor.getValue().optionalContentLength().get(), "Content of file should be as expected.");
   }
 
+  @Test
+  void testPutFileOverwrite() throws IOException {
+    final String overwriteContent = "Overwritten content";
+    service.putFile(UUID_CODE, FILENAME, 10, null, new ByteArrayInputStream(CONTENT.getBytes()));
+    service.putFile(UUID_CODE, FILENAME, 0, null, new ByteArrayInputStream(overwriteContent.getBytes()));
+    verify(s3Client, times(2)).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture());
+
+    assertEquals(2, putObjectRequestCaptor.getAllValues().size());
+    assertEquals(2, requestBodyCaptor.getAllValues().size());
+    for (final PutObjectRequest putObjectRequest : putObjectRequestCaptor.getAllValues()) {
+      assertEquals(EXPECTED_KEY, putObjectRequest.key(), "File should be stored with same key when overwritten");
+    }
+    assertEquals(CONTENT.length(), requestBodyCaptor.getAllValues().get(0).optionalContentLength().get(),
+        "Content of first file upload should be as expected.");
+    assertEquals(overwriteContent.length(), requestBodyCaptor.getAllValues().get(1).optionalContentLength().get(),
+        "Content of second file upload should be as expected.");
+  }
+
   @ParameterizedTest
   @CsvSource({UUID_CODE + "," + EXPECTED_FULLPATH, UUID_CODE_PREFIXED + "," + EXPECTED_FULLPATH_PREFIXED})
   void testGetFile(final String uuid, final String expectedFullPath) throws IOException {
@@ -120,6 +142,28 @@ class AmazonS3StorageServiceTest {
   void testGetFileNotFound() throws FileNotFoundException {
     doThrow(S3Exception.builder().build()).when(s3Client).getObjectAttributes(any(GetObjectAttributesRequest.class));
     assertThrows(FileNotFoundException.class, () -> service.getFile(UUID_CODE, FILENAME), "Expects the file to not be found.");
+  }
+
+  @Test
+  void testCopyFile() throws IOException {
+    final String destinationUuid = UUID.randomUUID().toString();
+    service.copyFile(UUID_CODE, destinationUuid, FILENAME, "copiedTag");
+    verify(s3Client).copyObject(copyObjectRequestCaptor.capture());
+
+    final CopyObjectRequest copyObjectRequest = copyObjectRequestCaptor.getValue();
+    assertEquals(BUCKET_NAME, copyObjectRequest.sourceBucket(), "Bucket should be the same");
+    assertEquals(BUCKET_NAME, copyObjectRequest.destinationBucket(), "Bucket should be the same");
+    assertEquals(EXPECTED_KEY, copyObjectRequest.sourceKey(), "Source key should be correct");
+    assertEquals("z/" + destinationUuid + "/" + FILENAME, copyObjectRequest.destinationKey(), "Destination key should be correct");
+    assertEquals("expires=copiedTag", copyObjectRequest.tagging(), "Tag used");
+  }
+
+  @Test
+  void testCopyFileNotFound() throws IOException {
+    final String destinationUuid = UUID.randomUUID().toString();
+    doThrow(S3Exception.builder().build()).when(s3Client).copyObject(any(CopyObjectRequest.class));
+    assertThrows(IOException.class, () -> service.copyFile(UUID_CODE, destinationUuid, FILENAME, null),
+        "Expect any exception to be mapped as IOException.");
   }
 
   @Test

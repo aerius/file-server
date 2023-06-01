@@ -18,6 +18,8 @@ package nl.aerius.fileserver.storage;
 
 import java.io.IOException;
 
+import jakarta.servlet.ServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -28,8 +30,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import nl.aerius.fileserver.util.FilenameUtil;
-
-import jakarta.servlet.ServletRequest;
 
 /**
  * Generic base Controller implementing all HTTP methods except for the GET request.
@@ -43,6 +43,7 @@ public class FileController {
   private static final String UUID = "{uuid}";
   private static final String FILENAME = "{filename}";
   protected static final String FILE_PATH = UUID + SLASH + FILENAME;
+  private static final String COPY_PATH = "copy/{sourceUuid}/{destinationUuid}" + SLASH + FILENAME;
 
   protected final StorageService storageService;
 
@@ -64,9 +65,8 @@ public class FileController {
     try {
       FilenameUtil.validateParameters(uuid, filename);
       LOG.debug("Put file {}/{}", uuid, filename);
-      final String originalFilename = filename;
 
-      storageService.putFile(uuid, originalFilename, request.getContentLength(), expires, request.getInputStream());
+      storageService.putFile(uuid, filename, request.getContentLength(), expires, request.getInputStream());
       return ResponseEntity.ok().build();
     } catch (final IOException e) {
       LOG.trace("IOException when trying to store a file", e);
@@ -74,6 +74,32 @@ public class FileController {
       LOG.warn("RuntimeException when trying to store a file", e);
     }
     return ResponseEntity.badRequest().build();
+  }
+
+  /**
+   * Copy a file.
+   *
+   * @param sourceUuid uuid of file to copy from
+   * @param destinationUuid uuid of file to copy to
+   * @param filename filename of the file to put
+   * @param expires optional expires header value should conform to RFC 1123
+   */
+  @PutMapping(value = COPY_PATH)
+  public ResponseEntity<Void> copyFile(@PathVariable final String sourceUuid, final @PathVariable String destinationUuid,
+      final @PathVariable String filename, @RequestParam(name = "expires", required = false) final String expires) {
+    try {
+      FilenameUtil.validateParameters(sourceUuid, filename);
+      FilenameUtil.validateParameters(destinationUuid, filename);
+      LOG.debug("Copy file {}/{} to {}/{}", sourceUuid, filename, destinationUuid, filename);
+
+      storageService.copyFile(sourceUuid, destinationUuid, filename, expires);
+      return ResponseEntity.ok().build();
+    } catch (final IOException e) {
+      LOG.trace("IOException when trying to store a file", e);
+    } catch (final RuntimeException e) {
+      LOG.warn("RuntimeException when trying to store a file", e);
+    }
+    return ResponseEntity.notFound().build();
   }
 
   /**

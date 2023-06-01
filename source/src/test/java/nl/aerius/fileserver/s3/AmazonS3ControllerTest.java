@@ -17,7 +17,6 @@
 package nl.aerius.fileserver.s3;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -54,7 +53,7 @@ class AmazonS3ControllerTest {
   @Test
   void testGetFile() throws Exception {
     final String tempFilename = "filename";
-    doReturn(AMAZON_URL).when(storageService).getFile(eq(UUID_CODE), eq(tempFilename));
+    doReturn(AMAZON_URL).when(storageService).getFile(UUID_CODE, tempFilename);
     final MockHttpServletResponse response = mvc.perform(get(HTTP_LOCALHOST + UUID_CODE + "/" + tempFilename)).andExpect(status().is3xxRedirection())
         .andReturn().getResponse();
 

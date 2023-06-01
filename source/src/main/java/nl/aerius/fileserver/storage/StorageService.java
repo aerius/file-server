@@ -33,7 +33,6 @@ public interface StorageService {
    * @param size size of the data
    * @param expires tag to set expiration of the file
    * @param in inputstream to the file data
-   * @return Returns the file code with which this file can be retrieved
    * @throws IOException
    */
   void putFile(String uuid, String filename, long size, String expires, InputStream in) throws IOException;
@@ -47,6 +46,15 @@ public interface StorageService {
    * @throws FileNotFoundException thrown when the file is unknown
    */
   String getFile(String uuid, String filename) throws FileNotFoundException;
+
+  /**
+   * @param sourceUuid The unique identifier the file to copy is stored by
+   * @param destinationUuid The unique identifier to copy the file to
+   * @param filename The original name of the file
+   * @param expires The tag to set expiration of the file in the destination
+   * @throws IOException
+   */
+  void copyFile(final String sourceUuid, final String destinationUuid, final String filename, final String expires) throws IOException;
 
   /**
    * Deletes the file.

@@ -75,6 +75,15 @@ class LocalFileStorageSeviceTest {
   }
 
   @Test
+  void testPutFileOverwrite() throws IOException {
+    final String overwriteContent = "Overwritten content";
+    service.putFile(UUID_CODE, FILENAME, 10, null, new ByteArrayInputStream(CONTENT.getBytes()));
+    service.putFile(UUID_CODE, FILENAME, 0, null, new ByteArrayInputStream(overwriteContent.getBytes()));
+    assertTrue(expectedFile.exists(), "File should exist when stored twice");
+    assertEquals(overwriteContent, Files.readString(expectedFile.toPath()), "Content of file should be as expected.");
+  }
+
+  @Test
   void testGetFile() throws IOException {
     writeTempFile();
     assertEquals(expectedFile.getAbsolutePath(), service.getFile(UUID_CODE, FILENAME), "Expects the complete path to file.");
@@ -83,6 +92,24 @@ class LocalFileStorageSeviceTest {
   @Test
   void testGetFileNotFound() throws FileNotFoundException {
     assertThrows(FileNotFoundException.class, () -> service.getFile(UUID_CODE, FILENAME), "Expects the file to not be found.");
+  }
+
+  @Test
+  void testCopyFile() throws IOException {
+    final String destinationUuid = UUID.randomUUID().toString();
+    writeTempFile();
+    service.copyFile(UUID_CODE, destinationUuid, FILENAME, null);
+    final File expectedCopy = new File(new File(tempDir, destinationUuid), FILENAME);
+    assertTrue(expectedCopy.exists(), "File should exist when copied");
+    assertEquals(CONTENT, Files.readString(expectedCopy.toPath()), "Content of file should be as expected.");
+  }
+
+  @Test
+  void testCopyFileNotFound() throws IOException {
+    final String destinationUuid = UUID.randomUUID().toString();
+    assertFalse(expectedFile.exists(), "Check if file does not exist before trying to copy non existing file.");
+    assertThrows(FileNotFoundException.class, () -> service.copyFile(UUID_CODE, destinationUuid, FILENAME, null),
+        "Should throw exception when file not found.");
   }
 
   @Test
@@ -101,7 +128,7 @@ class LocalFileStorageSeviceTest {
   @Test
   void testDeleteFiles() throws IOException {
     writeTempFile();
-    service.deleteFile(UUID_CODE, FILENAME);
+    service.deleteFiles(UUID_CODE);
     assertFalse(expectedFile.exists(), "File should not exist after delete");
   }
 

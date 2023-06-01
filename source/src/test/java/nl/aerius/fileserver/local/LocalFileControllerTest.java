@@ -95,12 +95,26 @@ class LocalFileControllerTest {
   }
 
   @Test
+  void testPutFileOverwrite() throws Exception {
+    final MockMultipartFile multipartFile = new MockMultipartFile("file", FILENAME, "text/plain", "AERIUS".getBytes());
+    final long size = multipartFile.getSize();
+    final MockMultipartFile multipartFile2 = new MockMultipartFile("file", FILENAME, "text/plain", "Tweede content".getBytes());
+    final long size2 = multipartFile2.getSize();
+
+    doAnswer(a -> null).when(storageService).putFile(eq(UUID_CODE), eq(FILENAME), eq(size), isNotNull(), any());
+    mvc.perform(put(URL + "?expires=never").content("AERIUS".getBytes())).andExpect(status().isOk());
+    mvc.perform(put(URL + "?expires=sometime").content("Tweede content".getBytes())).andExpect(status().isOk());
+    verify(storageService).putFile(eq(UUID_CODE), eq(FILENAME), eq(size), eq(EXPIRE_TAG_VALUE), any());
+    verify(storageService).putFile(eq(UUID_CODE), eq(FILENAME), eq(size2), eq("sometime"), any());
+  }
+
+  @Test
   void testGetFile() throws Exception {
     final String tempFilename = UUID.randomUUID().toString();
     final File tmpFile = new File(tempDir, tempFilename);
     final String content = "test";
     Files.writeString(tmpFile.toPath(), content);
-    doReturn(tmpFile.getAbsolutePath()).when(storageService).getFile(eq(UUID_CODE), eq(tempFilename));
+    doReturn(tmpFile.getAbsolutePath()).when(storageService).getFile(UUID_CODE, tempFilename);
     final MockHttpServletResponse response = mvc.perform(get(HTTP_LOCALHOST + UUID_CODE + "/" + tempFilename)).andExpect(status().isOk()).andReturn()
         .getResponse();
 
@@ -119,6 +133,22 @@ class LocalFileControllerTest {
   void testGetFileInvalidParameter() throws Exception {
     mvc.perform(get(URL_BAD_FILENAME)).andExpect(status().is4xxClientError());
     mvc.perform(get(URL_BAD_UUID)).andExpect(status().is4xxClientError());
+  }
+
+  @Test
+  void testCopyFile() throws Exception {
+    final String destinationUuid = UUID.randomUUID().toString();
+    mvc.perform(put(HTTP_LOCALHOST + "copy/" + UUID_CODE + "/" + destinationUuid + "/" + FILENAME + "?expires=never"))
+        .andExpect(status().isOk());
+    verify(storageService).copyFile(UUID_CODE, destinationUuid, FILENAME, EXPIRE_TAG_VALUE);
+  }
+
+  @Test
+  void testCopyFile404Missing() throws Exception {
+    final String destinationUuid = UUID.randomUUID().toString();
+    doThrow(new FileNotFoundException()).when(storageService).copyFile(any(), any(), any(), any());
+    mvc.perform(put(HTTP_LOCALHOST + "copy/" + UUID_CODE + "/" + destinationUuid + "/" + FILENAME + "?expires=never"))
+        .andExpect(status().isNotFound());
   }
 
   @Test
