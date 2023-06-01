@@ -88,6 +88,7 @@ public class FileController {
   public ResponseEntity<Void> copyFile(@PathVariable final String sourceUuid, final @PathVariable String destinationUuid,
       final @PathVariable String filename, @RequestParam(name = "expires", required = false) final String expires) {
     try {
+      FilenameUtil.validateParameters(sourceUuid, filename);
       FilenameUtil.validateParameters(destinationUuid, filename);
       LOG.debug("Copy file {}/{} to {}/{}", sourceUuid, filename, destinationUuid, filename);
 
