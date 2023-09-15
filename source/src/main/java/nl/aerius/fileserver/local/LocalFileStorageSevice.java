@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Profile;
@@ -41,6 +43,8 @@ import nl.aerius.fileserver.storage.StorageService;
 @Profile("local")
 class LocalFileStorageSevice implements StorageService {
 
+  private static final Logger LOG = LoggerFactory.getLogger(LocalFileStorageSevice.class);
+
   private final File localStorageDirectory;
   private final boolean preventCleanup;
 
@@ -51,6 +55,7 @@ class LocalFileStorageSevice implements StorageService {
     if (localStorageDirectory != null && !localStorageDirectory.exists()) {
       Files.createDirectory(localStorageDirectory.toPath());
     }
+    LOG.info("Storing files at: {}", localStorageDirectory);
   }
 
   @Override
