@@ -8,7 +8,7 @@ COPY . /app
 RUN mvn --no-transfer-progress -DskipTests=true clean package
 
 # Move the resultant jar to a known name so it can be picked up by the final image.
-RUN mv -v target/aerius-file-server-*.jar app.jar \
+RUN mv -v file-server/target/aerius-file-server-*.jar app.jar \
 # Clean up image so we can rerun without the cache being invalidated because target files are changed
     && mvn clean
 

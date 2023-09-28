@@ -26,4 +26,4 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_IMAGE_NAME: ${{ github.event.repository.name }}
-          DOCKER_WORK_DIRECTORY: repo/source/file-server
+          DOCKER_WORK_DIRECTORY: repo/source
