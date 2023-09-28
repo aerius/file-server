@@ -14,25 +14,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.aerius.register.fileserverclient;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
+package nl.aerius.fileserver.client;
 
 /**
- * Fileserver client configuration, to be used via {@link @import} annotation.
+ * Template enum for files to be stored on the file server.
  */
-@Configuration
-public class FileServerClientConfig {
+public interface FileServerFile {
 
-  @Bean
-  public FileServerProperties fileServerProperties() {
-    return new FileServerProperties();
-  }
+  /**
+   * @return Gets the filename as is used on the fileserver.
+   */
+  String getFilename();
 
-  @Bean
-  public FileServerClient fileServerClient(final WebClient.Builder webClientBuilder, final FileServerProperties fileServerProperties) {
-    return new FileServerClient(webClientBuilder, fileServerProperties);
-  }
+  /**
+   * @return Gets the filename as is used on the fileserver.
+   */
+  String uriTemplate();
+
 }

@@ -14,27 +14,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.aerius.register.fileserverclient;
-
-import java.util.UUID;
+package nl.aerius.fileserver.client;
 
 /**
- * Template enum for files to be stored on the file server.
+ * Example definition of a file folder structure
  */
-public enum FileServerFile {
+public enum ExampleFileServerFile implements FileServerFile {
 
-  /**
-   * Format to use when only UUID is needed. For example to delete all files related to the UUID in case of temporary files.
-   */
-  ALL(""),
   /**
    * Validation of imported data as json.
    */
   VALIDATION("validation.json"),
-  /**
-   * Summary of imported data obtained from Connect,  as json.
-   */
-  SUMMARY("summary.json"),
   /**
    * Free format where the actual filename is a parameter.
    */
@@ -44,31 +34,17 @@ public enum FileServerFile {
   private static final String UUID_SLASH = UUID_PLACEHOLDER + "/";
   private final String filename;
 
-  private FileServerFile(final String filename) {
+  ExampleFileServerFile(final String filename) {
     this.filename = filename;
   }
 
-  /**
-   * Creates a unique id with the given prefix prepended to the id.
-   *
-   * @param prefix string to prefix
-   * @return unique id
-   */
-  public static String createId(final String prefix) {
-    return prefix + UUID.randomUUID().toString().replace("-", "");
-  }
-
-  /**
-   * @return Gets the filename as is used on the fileserver.
-   */
+  @Override
   public String getFilename() {
     return filename;
   }
 
-  /**
-   * @return Gets the template of the uuid and filename pattern.
-   */
+  @Override
   public String uriTemplate() {
-    return this == ALL ? UUID_PLACEHOLDER : (UUID_SLASH + filename);
+    return UUID_SLASH + filename;
   }
 }

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.aerius.register.fileserviceclient;
+package nl.aerius.fileserver.client;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -39,11 +39,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
-
-import nl.aerius.register.fileserverclient.FileServerClient;
-import nl.aerius.register.fileserverclient.FileServerExpireTag;
-import nl.aerius.register.fileserverclient.FileServerFile;
-import nl.aerius.register.fileserverclient.FileServerProperties;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -84,7 +79,7 @@ class FileServerClientTest {
 
     mockFileServiceResponse(expectedFileName, FILE_CONTENTS.getBytes(StandardCharsets.UTF_8), HttpStatus.OK.value());
 
-    final FilenameAwareByteArrayResource result = fileServerClient.retrieveFile(FileServerFile.VALIDATION,
+    final FilenameAwareByteArrayResource result = fileServerClient.retrieveFile(ExampleFileServerFile.VALIDATION,
         (fileName, inputStream) -> new FilenameAwareByteArrayResource(inputStream.readAllBytes(), fileName), UUID_CODE);
 
     assertRecordedRequest(HttpMethod.GET, UUID_CODE);
@@ -99,7 +94,7 @@ class FileServerClientTest {
     mockFileServiceResponse("", new byte[0], HttpStatus.NOT_FOUND.value());
 
     final ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-        () -> fileServerClient.retrieveFile(FileServerFile.VALIDATION, (name, is) -> null, UUID_CODE),
+        () -> fileServerClient.retrieveFile(ExampleFileServerFile.VALIDATION, (name, is) -> null, UUID_CODE),
         "A ResponseStatusException should be thrown when the fileService returns a client error status.");
 
     assertRecordedRequest(HttpMethod.GET, UUID_CODE);
@@ -112,7 +107,7 @@ class FileServerClientTest {
     mockFileServiceResponse("", new byte[0], HttpStatus.FORBIDDEN.value());
 
     final ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-        () -> fileServerClient.retrieveFile(FileServerFile.VALIDATION, (name, is) -> null, UUID_CODE),
+        () -> fileServerClient.retrieveFile(ExampleFileServerFile.VALIDATION, (name, is) -> null, UUID_CODE),
         "A ResponseStatusException should be thrown when the fileService returns a client error status other than 404.");
 
     assertRecordedRequest(HttpMethod.GET, UUID_CODE);
@@ -127,7 +122,7 @@ class FileServerClientTest {
     mockFileServiceResponse("", new byte[0], HttpStatus.BAD_GATEWAY.value());
 
     final ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-        () -> fileServerClient.retrieveFile(FileServerFile.VALIDATION, (name, is) -> null, UUID_CODE),
+        () -> fileServerClient.retrieveFile(ExampleFileServerFile.VALIDATION, (name, is) -> null, UUID_CODE),
         "A ResponseStatusException should be thrown when the fileService returns a server error status.");
 
     assertRecordedRequest(HttpMethod.GET, UUID_CODE);
@@ -139,7 +134,7 @@ class FileServerClientTest {
   void testWrite() throws IOException, InterruptedException {
     mockFileServiceResponse(HttpStatus.OK.value());
 
-    fileServerClient.writeJson(UUID_CODE, FileServerFile.VALIDATION, FileServerExpireTag.NEVER, "test");
+    fileServerClient.writeJson(UUID_CODE, ExampleFileServerFile.VALIDATION, FileServerExpireTag.NEVER, "test");
     assertRecordedRequest(HttpMethod.PUT, UUID_CODE);
   }
 

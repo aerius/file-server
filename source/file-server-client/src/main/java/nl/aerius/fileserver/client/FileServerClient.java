@@ -14,18 +14,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package nl.aerius.register.fileserverclient;
+package nl.aerius.fileserver.client;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.UUID;
 import java.util.function.Function;
 
 import jakarta.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -55,7 +55,8 @@ public class FileServerClient {
   private final WebClient fileServerWebClient;
   private final WebClient fileServerWebClientWithoutRedirect;
 
-  @Autowired
+  private static final String ALL_FILES = "{uuid}";
+
   public FileServerClient(final WebClient.Builder webClientBuilder, final FileServerProperties properties) {
     this.fileServerWebClient = webClientBuilder.baseUrl(properties.getBaseUrl()).build();
     this.fileServerWebClientWithoutRedirect = webClientBuilder.baseUrl(properties.getBaseUrl())
@@ -187,7 +188,7 @@ public class FileServerClient {
    */
   public void deleteFilesForId(final String id) {
     fileServerWebClient.delete()
-        .uri(FileServerFile.ALL.uriTemplate(), uriBuilder -> uriBuilder.build(id))
+        .uri(ALL_FILES, uriBuilder -> uriBuilder.build(id))
         .retrieve()
         .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> clientResponse.bodyToMono(String.class).map(message -> {
           LOG.error("Fileserver server error with message: {}", message);
@@ -203,4 +204,13 @@ public class FileServerClient {
     T apply(String filename, InputStream inputStream) throws IOException;
   }
 
+  /**
+   * Creates a unique id with the given prefix prepended to the id.
+   *
+   * @param prefix string to prefix
+   * @return unique id
+   */
+  public static String createId(final String prefix) {
+    return prefix + UUID.randomUUID().toString().replace("-", "");
+  }
 }
