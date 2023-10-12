@@ -58,7 +58,8 @@ public class FileServerClient {
   private static final String ALL_FILES = "{uuid}";
 
   public FileServerClient(final WebClient.Builder webClientBuilder, final FileServerProperties properties) {
-    this.fileServerWebClient = webClientBuilder.baseUrl(properties.getBaseUrl()).build();
+    this.fileServerWebClient = webClientBuilder.baseUrl(properties.getBaseUrl())
+        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true))).build();
     this.fileServerWebClientWithoutRedirect = webClientBuilder.baseUrl(properties.getBaseUrl())
         .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(false))).build();
   }
