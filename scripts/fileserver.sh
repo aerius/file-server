@@ -15,7 +15,7 @@ SCRIPT_DIR=$(dirname "${SCRIPT_PATH}")
 # Port the file server is running on
 : ${AERIUS_FILE_SERVER_PORT:=8083}
 
-cd "${SCRIPT_DIR}/../source"
+cd "${SCRIPT_DIR}/../source/file-server"
 
 JAVA_HOME=${JAVA_17_HOME:=${JAVA_HOME}} \
   mvn spring-boot:run \
