@@ -1,5 +1,5 @@
 # Builder part for maven packaging.
-FROM maven:3-eclipse-temurin-17 as builder
+FROM maven:3-eclipse-temurin-21 as builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ FROM debian:bullseye
 
 # Get java from eclipse-temurin image (could perhaps do something with jlink later on)
 ENV JAVA_HOME=/opt/java/openjdk
-COPY --from=eclipse-temurin:17 $JAVA_HOME $JAVA_HOME
+COPY --from=eclipse-temurin:21 $JAVA_HOME $JAVA_HOME
 ENV PATH "${JAVA_HOME}/bin:${PATH}"
 
 # Set defaults
