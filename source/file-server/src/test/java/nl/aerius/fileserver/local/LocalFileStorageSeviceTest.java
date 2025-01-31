@@ -41,8 +41,7 @@ class LocalFileStorageSeviceTest {
   private static final String CONTENT = "AERIUS";
   private static final String UUID_CODE = "123";
   private static final String FILENAME = "test.gml";
-  @TempDir
-  File tempDir;
+  @TempDir File tempDir;
 
   private LocalFileStorageSevice service;
   private File expectedFile;
@@ -90,7 +89,7 @@ class LocalFileStorageSeviceTest {
   }
 
   @Test
-  void testGetFileNotFound() throws FileNotFoundException {
+  void testGetFileNotFound() {
     assertThrows(FileNotFoundException.class, () -> service.getFile(UUID_CODE, FILENAME), "Expects the file to not be found.");
   }
 
@@ -105,7 +104,7 @@ class LocalFileStorageSeviceTest {
   }
 
   @Test
-  void testCopyFileNotFound() throws IOException {
+  void testCopyFileNotFound() {
     final String destinationUuid = UUID.randomUUID().toString();
     assertFalse(expectedFile.exists(), "Check if file does not exist before trying to copy non existing file.");
     assertThrows(FileNotFoundException.class, () -> service.copyFile(UUID_CODE, destinationUuid, FILENAME, null),
@@ -120,7 +119,7 @@ class LocalFileStorageSeviceTest {
   }
 
   @Test
-  void testDeleteNotFound() throws IOException {
+  void testDeleteNotFound() {
     assertFalse(expectedFile.exists(), "Check if file does not exist before trying to delete non existing file.");
     assertThrows(NoSuchFileException.class, () -> service.deleteFile(UUID_CODE, FILENAME), "Should throw exception when file not found.");
   }

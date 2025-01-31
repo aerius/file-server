@@ -16,6 +16,8 @@
  */
 package nl.aerius.fileserver;
 
+import jakarta.servlet.Filter;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -43,7 +45,7 @@ public class Application {
    * CORS filter to allow client calls to be made on a different port.
    */
   @Bean
-  public FilterRegistrationBean<?> corsFilter() {
+  public FilterRegistrationBean<Filter> corsFilter() {
     final CorsConfiguration config = new CorsConfiguration();
 
     config.addAllowedOriginPattern("*");
@@ -52,7 +54,7 @@ public class Application {
     final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
     source.registerCorsConfiguration("/**", config);
-    final FilterRegistrationBean<?> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+    final FilterRegistrationBean<Filter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
 
     bean.setOrder(0);
     return bean;

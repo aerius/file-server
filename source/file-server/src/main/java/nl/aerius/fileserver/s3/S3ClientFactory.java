@@ -21,6 +21,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
@@ -34,6 +36,7 @@ class S3ClientFactory {
   @Lazy
   public S3Client s3Client() {
     return S3Client.builder()
+        .region(Region.of(System.getenv(SdkSystemSetting.AWS_REGION.environmentVariable())))
         .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
         .build();
   }
