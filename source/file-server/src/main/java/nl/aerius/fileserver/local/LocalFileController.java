@@ -27,10 +27,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import nl.aerius.fileserver.storage.FileController;
 import nl.aerius.fileserver.storage.StorageService;
@@ -39,7 +38,7 @@ import nl.aerius.fileserver.util.FilenameUtil;
 /**
  * Controller to handle the HTTP requests to the file server.
  */
-@Controller
+@RestController
 @Profile("local")
 class LocalFileController extends FileController {
 
@@ -59,7 +58,6 @@ class LocalFileController extends FileController {
    * @return returns the file or not found status if not present
    */
   @GetMapping(FILE_PATH)
-  @ResponseBody
   public ResponseEntity<Resource> getFile(final @PathVariable String uuid, final @PathVariable String filename) {
     try {
       FilenameUtil.validateParameters(uuid, filename);

@@ -32,10 +32,8 @@ import nl.aerius.fileserver.storage.StorageService;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
-import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAttributesRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ObjectAttributes;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
@@ -88,14 +86,12 @@ public class AmazonS3StorageService implements StorageService {
       final String key = key(uuid, filename);
       checkFileExists(key);
 
-      final GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-          .bucket(bucketName)
-          .responseContentDisposition("attachment; filename=\"" + filename + "\"")
-          .key(key)
-          .build();
       final GetObjectPresignRequest objectPresignRequest = GetObjectPresignRequest.builder()
           .signatureDuration(SIGNATURE_DURATION)
-          .getObjectRequest(getObjectRequest)
+          .getObjectRequest(d -> d
+              .bucket(bucketName)
+              .responseContentDisposition("attachment; filename=\"" + filename + "\"")
+              .key(key))
           .build();
       // Generate the presigned request
       return presigner.presignGetObject(objectPresignRequest).url().toExternalForm();
@@ -151,8 +147,7 @@ public class AmazonS3StorageService implements StorageService {
     try {
       final DeleteObjectsRequest dor = DeleteObjectsRequest.builder()
           .bucket(bucketName)
-          .delete(Delete.builder()
-              .objects(toDelete).build())
+          .delete(d -> d.objects(toDelete))
           .build();
 
       s3Client.deleteObjects(dor);
