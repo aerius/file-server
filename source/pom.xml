@@ -77,4 +77,19 @@
     <module>file-server</module>
     <module>file-server-client</module>
   </modules>
+  
+  <profiles>
+    <profile>
+      <id>dependency-check</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <inherited>false</inherited>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
