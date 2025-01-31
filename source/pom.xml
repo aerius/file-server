@@ -35,8 +35,6 @@
   <description>The file server Parent</description>
 
   <properties>
-    <java.version>21</java.version>
-
     <amazons3.version>2.30.7</amazons3.version>
     <okhttp.version>4.12.0</okhttp.version>
 
