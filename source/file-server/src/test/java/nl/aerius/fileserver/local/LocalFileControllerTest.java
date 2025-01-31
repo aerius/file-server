@@ -39,11 +39,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import nl.aerius.fileserver.storage.StorageService;
@@ -69,14 +69,11 @@ class LocalFileControllerTest {
   private static final String URL_BAD_FILENAME = HTTP_LOCALHOST + UUID_CODE + "/" + "1".repeat(1000);
   private static final String EXPIRE_TAG_VALUE = "never";
 
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
-  @MockBean
-  private StorageService storageService;
+  @MockitoBean private StorageService storageService;
 
-  @TempDir
-  File tempDir;
+  @TempDir File tempDir;
 
   @Test
   void testPutFile() throws Exception {

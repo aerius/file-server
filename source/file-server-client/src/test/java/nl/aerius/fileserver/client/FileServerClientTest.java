@@ -55,8 +55,7 @@ class FileServerClientTest {
   private static final String FILE_CONTENTS = "test";
   private MockWebServer mockWebServer;
 
-  @Mock
-  private FileServerProperties properties;
+  @Mock private FileServerProperties properties;
 
   private FileServerClient fileServerClient;
 
@@ -74,7 +73,7 @@ class FileServerClientTest {
   }
 
   @Test
-  void testRetrieveFile() throws IOException, InterruptedException {
+  void testRetrieveFile() throws InterruptedException {
     final String expectedFileName = "fileServiceResponse.json";
 
     mockFileServiceResponse(expectedFileName, FILE_CONTENTS.getBytes(StandardCharsets.UTF_8), HttpStatus.OK.value());
@@ -90,7 +89,7 @@ class FileServerClientTest {
   }
 
   @Test
-  void testRetrieveFileServiceNotFoundError() throws IOException, InterruptedException {
+  void testRetrieveFileServiceNotFoundError() throws InterruptedException {
     mockFileServiceResponse("", new byte[0], HttpStatus.NOT_FOUND.value());
 
     final ResponseStatusException exception = assertThrows(ResponseStatusException.class,
@@ -103,7 +102,7 @@ class FileServerClientTest {
   }
 
   @Test
-  void testRetrieveFileServiceClientError() throws IOException, InterruptedException {
+  void testRetrieveFileServiceClientError() throws InterruptedException {
     mockFileServiceResponse("", new byte[0], HttpStatus.FORBIDDEN.value());
 
     final ResponseStatusException exception = assertThrows(ResponseStatusException.class,
@@ -118,7 +117,7 @@ class FileServerClientTest {
   }
 
   @Test
-  void testRetrieveFileServiceServerError() throws IOException, InterruptedException {
+  void testRetrieveFileServiceServerError() throws InterruptedException {
     mockFileServiceResponse("", new byte[0], HttpStatus.BAD_GATEWAY.value());
 
     final ResponseStatusException exception = assertThrows(ResponseStatusException.class,
@@ -131,7 +130,7 @@ class FileServerClientTest {
   }
 
   @Test
-  void testWrite() throws IOException, InterruptedException {
+  void testWrite() throws InterruptedException {
     mockFileServiceResponse(HttpStatus.OK.value());
 
     fileServerClient.writeJson(UUID_CODE, ExampleFileServerFile.VALIDATION, FileServerExpireTag.NEVER, "test");
@@ -139,7 +138,7 @@ class FileServerClientTest {
   }
 
   @Test
-  void testCopy() throws IOException, InterruptedException {
+  void testCopy() throws InterruptedException {
     mockFileServiceResponse(HttpStatus.OK.value());
     final String destinationCode = "456";
     final String filename = "SomeFile";
@@ -149,7 +148,7 @@ class FileServerClientTest {
   }
 
   @Test
-  void testDelete() throws IOException, InterruptedException {
+  void testDelete() throws InterruptedException {
     mockFileServiceResponse("", new byte[0], HttpStatus.OK.value());
 
     fileServerClient.deleteFilesForId(UUID_CODE);
@@ -157,19 +156,19 @@ class FileServerClientTest {
   }
 
   @Test
-  void testDeleteFileServerError() throws IOException, InterruptedException {
+  void testDeleteFileServerError() throws InterruptedException {
     mockFileServiceResponse("", new byte[0], HttpStatus.INTERNAL_SERVER_ERROR.value());
 
     assertDoesNotThrow(() -> fileServerClient.deleteFilesForId(UUID_CODE), "A file service error should not cause an exception.");
     assertRecordedRequest(HttpMethod.DELETE, UUID_CODE);
   }
 
-  private void mockFileServiceResponse(final int status) throws IOException {
+  private void mockFileServiceResponse(final int status) {
     mockWebServer.enqueue(new MockResponse()
         .setResponseCode(status));
   }
 
-  private void mockFileServiceResponse(final String fileName, final byte[] fileContents, final int status) throws IOException {
+  private void mockFileServiceResponse(final String fileName, final byte[] fileContents, final int status) {
     try (final Buffer buffer = new Buffer()) {
       mockWebServer.enqueue(new MockResponse()
           .setResponseCode(status)

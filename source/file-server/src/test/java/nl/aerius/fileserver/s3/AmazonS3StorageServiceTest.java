@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -94,7 +94,7 @@ class AmazonS3StorageServiceTest {
   private AmazonS3StorageService service;
 
   @BeforeEach
-  void beforeEach() throws IOException {
+  void beforeEach() {
     final AmazonS3StorageProperties properties = new AmazonS3StorageProperties();
 
     properties.setBucketName(BUCKET_NAME);
@@ -134,12 +134,12 @@ class AmazonS3StorageServiceTest {
     final Builder builder = S3Utilities.builder();
     builder.region(REGION);
     doReturn(presignedGetObjectRequest).when(presigner).presignGetObject(any(GetObjectPresignRequest.class));
-    doAnswer(a -> new URL(expectedFullPath)).when(presignedGetObjectRequest).url();
+    doAnswer(a -> new URI(expectedFullPath).toURL()).when(presignedGetObjectRequest).url();
     assertEquals(expectedFullPath, service.getFile(uuid, FILENAME), "Expects the complete path to file.");
   }
 
   @Test
-  void testGetFileNotFound() throws FileNotFoundException {
+  void testGetFileNotFound() {
     doThrow(S3Exception.builder().build()).when(s3Client).getObjectAttributes(any(GetObjectAttributesRequest.class));
     assertThrows(FileNotFoundException.class, () -> service.getFile(UUID_CODE, FILENAME), "Expects the file to not be found.");
   }
@@ -159,7 +159,7 @@ class AmazonS3StorageServiceTest {
   }
 
   @Test
-  void testCopyFileNotFound() throws IOException {
+  void testCopyFileNotFound() {
     final String destinationUuid = UUID.randomUUID().toString();
     doThrow(S3Exception.builder().build()).when(s3Client).copyObject(any(CopyObjectRequest.class));
     assertThrows(IOException.class, () -> service.copyFile(UUID_CODE, destinationUuid, FILENAME, null),
@@ -176,7 +176,7 @@ class AmazonS3StorageServiceTest {
   }
 
   @Test
-  void testDeleteNotFound() throws IOException {
+  void testDeleteNotFound() {
     doThrow(S3Exception.builder().build()).when(s3Client).deleteObjects(any(DeleteObjectsRequest.class));
     assertThrows(IOException.class, () -> service.deleteFile(UUID_CODE, FILENAME), "Should throw exception when file not found.");
   }
