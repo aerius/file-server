@@ -21,7 +21,7 @@
   <parent>
     <groupId>nl.aerius</groupId>
     <artifactId>aerius-file-server-parent</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>aerius-file-server-client</artifactId>
