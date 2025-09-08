@@ -27,7 +27,7 @@
   <packaging>pom</packaging>
 
   <artifactId>aerius-file-server-parent</artifactId>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.3.0</version>
 
   <name>AERIUS :: File Server Parent</name>
   <description>The file server Parent</description>
