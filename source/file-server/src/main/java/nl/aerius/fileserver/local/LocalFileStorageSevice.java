@@ -66,7 +66,17 @@ class LocalFileStorageSevice implements StorageService {
       Files.createDirectory(uuidPath);
     }
     final Path file = filePath(uuidPath, filename);
-    Files.copy(in, file, StandardCopyOption.REPLACE_EXISTING);
+    // Write to a temporary file in the same directory and then atomically move it into place. A plain
+    // Files.copy(REPLACE_EXISTING) deletes the target before recreating it, which exposes a window where a
+    // concurrent read sees the file missing or partially written and fails with a 500. ATOMIC_MOVE (a rename)
+    // ensures readers always observe either the complete old file or the complete new one.
+    final Path tempFile = Files.createTempFile(uuidPath, filename + ".", ".tmp");
+    try {
+      Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+      Files.move(tempFile, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    } finally {
+      Files.deleteIfExists(tempFile);
+    }
   }
 
   @Override
