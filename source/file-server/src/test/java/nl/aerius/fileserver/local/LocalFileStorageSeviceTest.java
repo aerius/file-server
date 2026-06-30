@@ -16,6 +16,7 @@
  */
 package nl.aerius.fileserver.local;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -80,6 +81,16 @@ class LocalFileStorageSeviceTest {
     service.putFile(UUID_CODE, FILENAME, 0, null, new ByteArrayInputStream(overwriteContent.getBytes()));
     assertTrue(expectedFile.exists(), "File should exist when stored twice");
     assertEquals(overwriteContent, Files.readString(expectedFile.toPath()), "Content of file should be as expected.");
+  }
+
+  @Test
+  void testPutFileLeavesNoTempFile() throws IOException {
+    // The atomic-write path stages the content in a temp file before moving it into place; ensure that
+    // temp file is always cleaned up so it can't leak into directory listings or repeated overwrites.
+    service.putFile(UUID_CODE, FILENAME, 10, null, new ByteArrayInputStream(CONTENT.getBytes()));
+    service.putFile(UUID_CODE, FILENAME, 0, null, new ByteArrayInputStream(CONTENT.getBytes()));
+    final String[] storedFiles = expectedFile.getParentFile().list();
+    assertArrayEquals(new String[] {FILENAME}, storedFiles, "Only the target file should remain, no temp residue.");
   }
 
   @Test
