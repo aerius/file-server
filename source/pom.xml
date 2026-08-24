@@ -1,6 +1,6 @@
 <!--
 
-    Copyright the State of the Netherlands
+    Copyright (c) Contributors to the project
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -38,6 +38,17 @@
 
     <sonar.projectKey>aerius_file-server</sonar.projectKey>
   </properties>
+
+  <contributors>
+    <contributor>
+      <organization>Ministry of Agriculture, Fisheries, Food Security and Nature</organization>
+      <organizationUrl>https://www.government.nl/ministries/ministry-of-agriculture-fisheries-food-security-and-nature</organizationUrl>
+    </contributor>
+    <contributor>
+      <organization>Government of the United Kingdom</organization>
+      <organizationUrl>https://www.gov.uk</organizationUrl>
+    </contributor>
+  </contributors>
 
   <repositories>
     <repository>
