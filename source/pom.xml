@@ -39,6 +39,17 @@
     <sonar.projectKey>aerius_file-server</sonar.projectKey>
   </properties>
 
+  <contributors>
+    <contributor>
+      <organization>Ministry of Agriculture, Fisheries, Food Security and Nature</organization>
+      <organizationUrl>https://www.government.nl/ministries/ministry-of-agriculture-fisheries-food-security-and-nature</organizationUrl>
+    </contributor>
+    <contributor>
+      <organization>Government of the United Kingdom</organization>
+      <organizationUrl>https://www.gov.uk</organizationUrl>
+    </contributor>
+  </contributors>
+
   <repositories>
     <repository>
       <id>aerius-nexus-public</id>
