@@ -17,12 +17,17 @@
 package nl.aerius.fileserver.local;
 
 import java.io.IOException;
+import java.nio.channels.Channels;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.FileUrlResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -65,12 +70,17 @@ class LocalFileController extends FileController {
       final String file = storageService.getFile(uuid, filename);
 
       LOG.debug("Returning file: {}", file);
-      final FileUrlResource resource = new FileUrlResource(file);
+      // Open the file once and take both the length and the bytes from that one handle. A FileUrlResource reads the length
+      // for the Content-Length header first and opens the file later, so a concurrent overwrite in between makes Tomcat
+      // send a truncated (or never completed) body. An open handle keeps the old file even after it is renamed over.
+      final SeekableByteChannel channel = Files.newByteChannel(Path.of(file), StandardOpenOption.READ);
+      final long contentLength = channel.size();
+      final InputStreamResource resource = new InputStreamResource(Channels.newInputStream(channel));
       final HttpHeaders headers = new HttpHeaders();
       final ContentDisposition contentDisposition = ContentDisposition.attachment().filename(filename).build();
 
       headers.setContentDisposition(contentDisposition);
-      return ResponseEntity.ok().headers(headers).body(resource);
+      return ResponseEntity.ok().headers(headers).contentLength(contentLength).body(resource);
     } catch (final IOException e) {
       LOG.trace("IOException when trying to get a file", e);
     } catch (final RuntimeException e) {

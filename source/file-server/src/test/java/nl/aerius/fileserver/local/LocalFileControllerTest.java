@@ -17,6 +17,7 @@
 package nl.aerius.fileserver.local;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNotNull;
@@ -32,7 +33,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -118,6 +123,47 @@ class LocalFileControllerTest {
     assertEquals("attachment; filename=\"" + tempFilename + "\"", response.getHeader(HttpHeaders.CONTENT_DISPOSITION),
         "Header should contain filename");
     assertEquals(content, response.getContentAsString(), "Expects file content to be in data");
+  }
+
+  @Test
+  void testGetFileWhileOverwritten() throws Exception {
+    // A file that is atomically replaced while it is being served must still come back whole: the Content-Length header and
+    // the body have to describe the same version of the file. Reading the length first and opening the file later serves the
+    // new bytes under the old length, which the client then sees as a truncated body.
+    final String tempFilename = UUID.randomUUID().toString();
+    final Path file = new File(tempDir, tempFilename).toPath();
+    final String small = "{\"errors\":[],\"warnings\":[]}";
+    final String large = "{\"errors\":[\"" + "x".repeat(4000) + "\"]}";
+    Files.writeString(file, small);
+    doReturn(file.toAbsolutePath().toString()).when(storageService).getFile(UUID_CODE, tempFilename);
+
+    final AtomicBoolean running = new AtomicBoolean(true);
+    final Thread writer = new Thread(() -> {
+      try {
+        while (running.get()) {
+          for (final String content : List.of(large, small)) {
+            final Path staged = Files.createTempFile(tempDir.toPath(), tempFilename, ".tmp");
+            Files.writeString(staged, content);
+            Files.move(staged, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+          }
+        }
+      } catch (final Exception e) {
+        throw new IllegalStateException(e);
+      }
+    });
+    writer.start();
+    try {
+      for (int i = 0; i < 2000; i++) {
+        final MockHttpServletResponse response = mvc.perform(get(HTTP_LOCALHOST + UUID_CODE + "/" + tempFilename)).andExpect(status().isOk())
+            .andReturn().getResponse();
+        final String body = response.getContentAsString();
+        assertEquals(body.length(), response.getContentLength(), "Content-Length must match the body that was served (iteration " + i + ")");
+        assertTrue(body.equals(small) || body.equals(large), "Body must be one complete version of the file (iteration " + i + ")");
+      }
+    } finally {
+      running.set(false);
+      writer.join();
+    }
   }
 
   @Test
