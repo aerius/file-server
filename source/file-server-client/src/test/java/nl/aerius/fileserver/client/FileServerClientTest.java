@@ -37,6 +37,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 import okhttp3.mockwebserver.MockResponse;
@@ -147,6 +148,16 @@ class FileServerClientTest {
   }
 
   @Test
+  void testWriteFileServerClientError() throws InterruptedException {
+    mockFileServiceResponse("", new byte[0], HttpStatus.BAD_REQUEST.value());
+
+    assertThrows(WebClientResponseException.class,
+        () -> fileServerClient.writeJson(UUID_CODE, ExampleFileServerFile.VALIDATION, FileServerExpireTag.NEVER, "test"),
+        "A file service client error should be passed on.");
+    assertRecordedRequest(HttpMethod.PUT, UUID_CODE);
+  }
+
+  @Test
   void testCopy() throws InterruptedException {
     mockFileServiceResponse(HttpStatus.OK.value());
     final String destinationCode = "456";
@@ -159,6 +170,14 @@ class FileServerClientTest {
   @Test
   void testDelete() throws InterruptedException {
     mockFileServiceResponse("", new byte[0], HttpStatus.OK.value());
+
+    fileServerClient.deleteFilesForId(UUID_CODE);
+    assertRecordedRequest(HttpMethod.DELETE, UUID_CODE);
+  }
+
+  @Test
+  void testDeleteNotFound() throws InterruptedException {
+    mockFileServiceResponse("", "Not found".getBytes(StandardCharsets.UTF_8), HttpStatus.NOT_FOUND.value());
 
     fileServerClient.deleteFilesForId(UUID_CODE);
     assertRecordedRequest(HttpMethod.DELETE, UUID_CODE);

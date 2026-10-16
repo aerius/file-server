@@ -30,7 +30,6 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.JdkClientHttpConnector;
@@ -155,14 +154,14 @@ public class FileServerClient {
   private static Mono<Void> retrieve(final RequestHeadersSpec<?> requestSpec, final String uriTemplate) {
     return requestSpec
         .retrieve()
-        .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> clientResponse.bodyToMono(String.class)
-            .defaultIfEmpty("")
-            .map(message -> {
-              LOG.error("Fileserver error while posting to '{}' with message: {}", uriTemplate, message);
-              return new IllegalStateException("Error while posting to fileserver.");
-            }))
-        .onStatus(HttpStatusCode::is4xxClientError, ClientResponse::createError)
-        .bodyToMono(Void.class);
+        .bodyToMono(Void.class)
+        .onErrorMap(WebClientResponseException.class, e -> {
+          if (!e.getStatusCode().is5xxServerError()) {
+            return e;
+          }
+          LOG.error("Fileserver error while posting to '{}' with message: {}", uriTemplate, e.getResponseBodyAsString());
+          return new IllegalStateException("Error while posting to fileserver.");
+        });
   }
 
   public void copy(final String sourceId, final String destinationId, final String filename, final FileServerExpireTag expire) {
@@ -181,15 +180,16 @@ public class FileServerClient {
     fileServerWebClient.delete()
         .uri(ALL_FILES, uriBuilder -> uriBuilder.build(id))
         .retrieve()
-        .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> clientResponse.bodyToMono(String.class)
-            .defaultIfEmpty("")
-            .map(message -> {
-              LOG.error("Fileserver server error with message: {}", message);
-              return new IllegalStateException("Error while posting to fileserver.");
-            }))
-        // Ignore not found errors on delete requests
-        .onStatus(status -> status.isSameCodeAs(HttpStatus.NOT_FOUND), clientResponse -> Mono.empty())
         .bodyToMono(Void.class)
+        // Ignore not found errors on delete requests
+        .onErrorResume(WebClientResponseException.NotFound.class, e -> Mono.empty())
+        .onErrorMap(WebClientResponseException.class, e -> {
+          if (!e.getStatusCode().is5xxServerError()) {
+            return e;
+          }
+          LOG.error("Fileserver server error with message: {}", e.getResponseBodyAsString());
+          return new IllegalStateException("Error while posting to fileserver.");
+        })
         .block(WEBCLIENT_TIMEOUT);
   }
 
