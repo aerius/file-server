@@ -18,11 +18,11 @@ package nl.aerius.fileserver.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.function.Function;
-
-import jakarta.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,18 +33,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.http.client.reactive.JdkClientHttpConnector;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
-import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
 
 public class FileServerClient {
 
@@ -58,21 +56,11 @@ public class FileServerClient {
   private static final String ALL_FILES = "{uuid}";
 
   public FileServerClient(final WebClient.Builder webClientBuilder, final FileServerProperties properties) {
+    // The JDK client resends a GET when the server closed the pooled connection before any response; Reactor Netty does not.
     this.fileServerWebClient = webClientBuilder.baseUrl(properties.getBaseUrl())
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true))).build();
+        .clientConnector(new JdkClientHttpConnector(HttpClient.newBuilder().followRedirects(Redirect.NORMAL).build())).build();
     this.fileServerWebClientWithoutRedirect = webClientBuilder.baseUrl(properties.getBaseUrl())
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(false))).build();
-  }
-
-  @PostConstruct
-  void fakeCall() {
-    // Webflux/netty seems to have a bug where the body of the first object is retained in memory.
-    // To reduce this memory use, use a normal get method, even though it'll result in nonsense.
-    try {
-      this.fileServerWebClient.get().retrieve().bodyToMono(Void.class).block(Duration.ofSeconds(1));
-    } catch (final WebClientException e) {
-      LOG.debug("Ignoring exception, just avoiding unnecessary memory use", e);
-    }
+        .clientConnector(new JdkClientHttpConnector(HttpClient.newBuilder().followRedirects(Redirect.NEVER).build())).build();
   }
 
   /**
@@ -167,10 +155,12 @@ public class FileServerClient {
   private static Mono<Void> retrieve(final RequestHeadersSpec<?> requestSpec, final String uriTemplate) {
     return requestSpec
         .retrieve()
-        .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> clientResponse.bodyToMono(String.class).map(message -> {
-          LOG.error("Fileserver error while posting to '{}' with message: {}", uriTemplate, message);
-          return new IllegalStateException("Error while posting to fileserver.");
-        }))
+        .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> clientResponse.bodyToMono(String.class)
+            .defaultIfEmpty("")
+            .map(message -> {
+              LOG.error("Fileserver error while posting to '{}' with message: {}", uriTemplate, message);
+              return new IllegalStateException("Error while posting to fileserver.");
+            }))
         .onStatus(HttpStatusCode::is4xxClientError, ClientResponse::createError)
         .bodyToMono(Void.class);
   }
@@ -191,10 +181,12 @@ public class FileServerClient {
     fileServerWebClient.delete()
         .uri(ALL_FILES, uriBuilder -> uriBuilder.build(id))
         .retrieve()
-        .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> clientResponse.bodyToMono(String.class).map(message -> {
-          LOG.error("Fileserver server error with message: {}", message);
-          return new IllegalStateException("Error while posting to fileserver.");
-        }))
+        .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> clientResponse.bodyToMono(String.class)
+            .defaultIfEmpty("")
+            .map(message -> {
+              LOG.error("Fileserver server error with message: {}", message);
+              return new IllegalStateException("Error while posting to fileserver.");
+            }))
         // Ignore not found errors on delete requests
         .onStatus(status -> status.isSameCodeAs(HttpStatus.NOT_FOUND), clientResponse -> Mono.empty())
         .bodyToMono(Void.class)

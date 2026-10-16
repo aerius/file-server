@@ -17,7 +17,6 @@
 package nl.aerius.fileserver.client;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -138,6 +137,16 @@ class FileServerClientTest {
   }
 
   @Test
+  void testWriteFileServerError() throws InterruptedException {
+    mockFileServiceResponse("", new byte[0], HttpStatus.INTERNAL_SERVER_ERROR.value());
+
+    assertThrows(IllegalStateException.class,
+        () -> fileServerClient.writeJson(UUID_CODE, ExampleFileServerFile.VALIDATION, FileServerExpireTag.NEVER, "test"),
+        "A file service error should cause an exception, also without a response body.");
+    assertRecordedRequest(HttpMethod.PUT, UUID_CODE);
+  }
+
+  @Test
   void testCopy() throws InterruptedException {
     mockFileServiceResponse(HttpStatus.OK.value());
     final String destinationCode = "456";
@@ -159,7 +168,8 @@ class FileServerClientTest {
   void testDeleteFileServerError() throws InterruptedException {
     mockFileServiceResponse("", new byte[0], HttpStatus.INTERNAL_SERVER_ERROR.value());
 
-    assertDoesNotThrow(() -> fileServerClient.deleteFilesForId(UUID_CODE), "A file service error should not cause an exception.");
+    assertThrows(IllegalStateException.class, () -> fileServerClient.deleteFilesForId(UUID_CODE),
+        "A file service error should cause an exception, also without a response body.");
     assertRecordedRequest(HttpMethod.DELETE, UUID_CODE);
   }
 
