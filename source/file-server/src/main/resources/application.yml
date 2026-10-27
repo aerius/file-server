@@ -3,11 +3,12 @@ spring:
     multipart:
       max-file-size: -1
       max-request-size: -1
+  web:
+    error:
+      # include error message for easier debugging always, safe since this service is not exposed to the web.
+      include-message: ALWAYS
 server:
   port: 8083
-  error:
-    # include error message for easier debugging always, safe since this service is not exposed to the web.
-    include-message: ALWAYS
 aerius:
   file:
     storage:
